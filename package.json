@@ -1,0 +1,52 @@
+{
+	"author": {
+		"name": "Baptiste Pillot",
+		"email": "baptiste@pillot.fr"
+	},
+	"dependencies": {
+		"@itrocks/action": "latest",
+		"@itrocks/action-request": "latest",
+		"@itrocks/route": "latest",
+		"@itrocks/storage": "latest"
+	},
+	"description": "Generic action-based object summary in JSON",
+	"devDependencies": {
+		"typescript": "~5.6"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"exports": "./cjs/summary.js",
+	"homepage": "https://it.rocks",
+	"files": [
+		"LICENSE",
+		"README.md",
+		"cjs/*",
+		"!*.map"
+	],
+	"keywords": [
+		"API",
+		"backend",
+		"data preview",
+		"ID-label mapping",
+		"json",
+		"lightweight output",
+		"minimal output",
+		"summary",
+		"it.rocks",
+		"summary",
+		"UI",
+		"UX"
+	],
+	"license": "ISC",
+	"name": "@itrocks/summary",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/itrocks-ts/summary.git"
+	},
+	"scripts": {
+		"build": "tsc -p tsconfig.json"
+	},
+	"types": "./cjs/summary.d.ts",
+	"version": "0.0.1"
+}
