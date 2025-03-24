@@ -6,7 +6,7 @@ import { dataSource } from '@itrocks/storage'
 
 @Need('Store')
 @Route('/summary')
-export default class Summary extends Action
+export class Summary extends Action
 {
 
 	async json(request: Request)
