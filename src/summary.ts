@@ -6,10 +6,10 @@ import { dataSource } from '@itrocks/storage'
 
 @Need('Store')
 @Route('/summary')
-export class Summary extends Action
+export class Summary<T extends object = object> extends Action<T>
 {
 
-	async json(request: Request)
+	async json(request: Request<T>)
 	{
 		const summary = (await dataSource().search(request.type)).map(object => [object.id, object + ''])
 		return this.jsonResponse(summary)

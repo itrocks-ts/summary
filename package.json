@@ -49,5 +49,5 @@
 		"build": "tsc"
 	},
 	"types": "./cjs/summary.d.ts",
-	"version": "0.0.6"
+	"version": "0.0.7"
 }
