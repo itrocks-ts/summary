@@ -3,6 +3,9 @@ import { Need }       from '@itrocks/action'
 import { Request }    from '@itrocks/action-request'
 import { Route }      from '@itrocks/route'
 import { dataSource } from '@itrocks/storage'
+import { Identifier } from '@itrocks/storage'
+
+export type SummaryRecord = [Identifier, string]
 
 @Need('Store')
 @Route('/summary')
