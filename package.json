@@ -6,6 +6,7 @@
 	"dependencies": {
 		"@itrocks/action": "latest",
 		"@itrocks/action-request": "latest",
+		"@itrocks/class-view": "latest",
 		"@itrocks/route": "latest",
 		"@itrocks/storage": "latest"
 	},
@@ -49,5 +50,5 @@
 		"build": "tsc"
 	},
 	"types": "./cjs/summary.d.ts",
-	"version": "0.0.10"
+	"version": "0.0.11"
 }
