@@ -27,18 +27,24 @@
 		"!*.map"
 	],
 	"keywords": [
+		"action",
 		"API",
 		"backend",
+		"component",
 		"data preview",
+		"entity",
+		"entity summary",
+		"html",
 		"ID-label mapping",
+		"it.rocks",
 		"json",
 		"lightweight output",
 		"minimal output",
-		"summary",
-		"it.rocks",
+		"standard",
 		"summary",
 		"UI",
-		"UX"
+		"UX",
+		"view"
 	],
 	"license": "ISC",
 	"name": "@itrocks/summary",
@@ -50,5 +56,5 @@
 		"build": "tsc"
 	},
 	"types": "./cjs/summary.d.ts",
-	"version": "0.0.12"
+	"version": "0.0.13"
 }
