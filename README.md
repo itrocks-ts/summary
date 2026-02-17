@@ -6,7 +6,7 @@
 
 # summary
 
-Generic action-based object summary in JSON.
+Generic action-based objects summary in HTML or JSON.
 
 *This documentation was written by an artificial intelligence and may contain errors or approximations.
 It has not yet been fully reviewed by a human. If anything seems unclear or incomplete,
@@ -18,56 +18,22 @@ please feel free to contact the author of this package.*
 npm i @itrocks/summary
 ```
 
-`@itrocks/summary` is designed to be used together with the other it.rocks
-backend packages such as `@itrocks/action`, `@itrocks/action-request`,
-`@itrocks/route`, and `@itrocks/storage`. Those are installed automatically
-through `peerDependencies` of higher‑level packs, or you can depend on them
-directly in your own project.
+`@itrocks/summary` is designed to be used together with the other
+it.rocks backend packages such as `@itrocks/action`, `@itrocks/action-request`, `@itrocks/route`,
+and `@itrocks/storage`.
 
-## Usage
+## What it returns
 
-`@itrocks/summary` exposes a single action class, `Summary<T>`, which builds a
-compact JSON representation for all objects of a given type:
-
-- each record is a tuple `[id, label]`,
-- `id` is the persistent identifier (`Identifier`) of the object,
-- `label` is a short, human‑readable text obtained via
-  [[https://github.com/itrocks-ts/classs-view#representativeValueOf|representativeValueOf]].
-
-By default the action is routed on `/summary` and requires access to a
-`Store` (configured by the `@Need('Store')` decorator).
-
-### Minimal example
+A summary is a list of tuples:
 
 ```ts
-// src/domain/user.ts
-export class User {
-	id   = 0
-	name = ''
-}
-
-// src/actions/user/summary-users.ts
-import { Summary }       from '@itrocks/summary'
-import { Route }         from '@itrocks/route'
-import type { Request }  from '@itrocks/action-request'
-
-import { User }          from '../../domain/user.js'
-
-@Route('/summary/users')
-export class SummaryUsers extends Summary<User> {}
-
-// somewhere in your HTTP framework adapter
-const summaryUsers = new SummaryUsers()
-
-export async function summaryUsersJson (request: Request<User>) {
-	// Returns a JsonResponse wrapping: Array<[Identifier, string]>
-	return summaryUsers.json(request)
-}
+export type SummaryRecord = [Identifier, string]
 ```
 
-When called with a `Request<User>`, this action loads all `User` objects from
-the configured data source, orders them using `@itrocks/storage`'s default
-`Sort`, and returns a JSON response like:
+- `Identifier` is the persistent identifier (from [@itrocks/storage](https://github.com/itrocks-ts/storage)).
+- The string is the representative value of the object (from [representativeValueOf](https://github.com/itrocks-ts/class-view)).
+
+Example JSON payload:
 
 ```json
 [
@@ -77,129 +43,114 @@ the configured data source, orders them using `@itrocks/storage`'s default
 ]
 ```
 
-### Complete example: using summaries for a select/drop‑down
+Identifier `0` is reserved internally and never represents a persisted entity.
 
-This example shows how you might use `@itrocks/summary` to populate a
-drop‑down list of related entities in a front‑end.
+## Usage
+
+`@itrocks/summary` exposes a single action class, `Summary`.
+
+### Minimal example
 
 ```ts
-// src/domain/project.ts
-export class Project {
-	id    = 0
-	name  = ''
-	owner = 0  // references a User.id
-}
-
-// src/domain/user.ts
-export class User {
-	id   = 0
-	name = ''
-}
-
-// src/actions/user/summary-users.ts
-import { Summary }       from '@itrocks/summary'
-import { Route }         from '@itrocks/route'
-import type { Request }  from '@itrocks/action-request'
-
-import { User }          from '../../domain/user.js'
-
 @Route('/summary/users')
 export class SummaryUsers extends Summary<User> {}
 
-// HTTP adapter (pseudo‑code)
 const summaryUsers = new SummaryUsers()
 
-export async function getUserOptions (request: Request<User>) {
-	const response = await summaryUsers.json(request)
-	// Assuming JsonResponse exposes the payload as `body`
-	const records = response.body as [number, string][]
-
-	return records.map(([id, label]) => ({ value: id, label }))
+export async function summaryUsersJson(request: Request<User>) {
+  return summaryUsers.json(request)
 }
-
-// In a front‑end template (pseudo‑code)
-// const options = await fetch('/summary/users').then(r => r.json())
-// <select name="owner">
-//   {options.map(([id, label]) => (
-//     <option value={id}>{label}</option>
-//   ))}
-// </select>
 ```
 
-Thanks to `representativeValueOf`, the label automatically follows the
-configuration of your class view: it can be as simple as a single property
-(`name`), or a richer combination of fields (for example
-`"{firstName} {lastName} <{email}>"`).
+### HTML output
+
+The action also supports an HTML variant:
+
+```ts
+export async function summaryUsersHtml(request: Request<User>) {
+  return summaryUsers.html(request)
+}
+```
+
+The produced HTML is:
+
+```html
+<ul>
+  <li data-id="1">Alice</li>
+  <li data-id="2">Bob</li>
+  <li data-id="3">Charlie</li>
+</ul>
+```
+
+The label content is generated from `representativeValueOf(object)`. If
+representative values may contain user-provided content, proper HTML
+escaping must be ensured by the surrounding framework.
+
+## Query parameters (filtering and paging)
+
+```ts
+export interface SummaryRequest {
+  limit?:      number
+  offset?:     number
+  page?:       number
+  startsWith?: string
+}
+```
+
+### startsWith
+
+Filters results to objects whose representative property begins with the given prefix.
+
+The filtering is delegated to the underlying `search(...)` implementation.
+Case sensitivity and collation therefore depend on the configured storage layer.
+
+### limit, offset, page
+
+- `limit` - maximum number of records returned.
+- `offset` - zero‑based index of the first record to return.
+- `page` - alternative to `offset`, computed as: `offset = page * limit`
+
+Precedence rules:
+
+- If not paging parameter `limit` is provided, `offset` and `page` are ignored,
+  no implicit limit is applied, and all matching records are returned.
+- If `limit` is provided as an empty string, a default `limit` of 1000 is applied.
+- If both `offset` and `page` are provided, only `offset` is used.
+- Otherwise, if `page` is provided, `offset = page * limit`.
+
+### Truncation marker
+
+When paging and/or filtering is used and additional matching records
+exist beyond the returned slice, a pseudo‑record is appended:
+
+```json
+  [0, "..."]
+```
+
+This record signals that the result set is incomplete. It is always
+appended at the end of the result array.
 
 ## API
 
-### Types
-
 ```ts
-export type SummaryRecord = [Identifier, string]
-```
-
-Represents one line of the summary result:
-
-- index `0` – the object's identifier, as defined by `@itrocks/storage`'s
-  `Identifier` type;
-- index `1` – the human‑readable label for this object.
-
-The JSON payload returned by `Summary#json` is an array of `SummaryRecord`.
-
-### `Summary<T extends object = object>`
-
-```ts
-import { Summary } from '@itrocks/summary'
-
 export class Summary<T extends object = object> extends Action<T> {
-	json(request: Request<T>): Promise<JsonResponse>
+  html(request: Request<T>): Promise<HtmlResponse>
+  json(request: Request<T>): Promise<JsonResponse>
 }
 ```
 
-`Summary` is an `Action<T>` that:
+- `json()` returns `SummaryRecord[]`.
+- `html()` returns an HTML `<ul>` containing `<li data-id="…">…</li>` entries.
 
-- declares a dependency on a `Store` (`@Need('Store')`),
-- is mapped to the `/summary` route by default (`@Route('/summary')`),
-- reads all entities of the requested type from the configured data source,
-- sorts them using the standard `Sort` strategy from `@itrocks/storage`,
-- converts each entity to a **representative value** using
-  `representativeValueOf` from `@itrocks/class-view`,
-- returns the resulting list as a JSON response of `SummaryRecord[]`.
+Internally, `Summary`:
 
-#### `json(request: Request<T>): Promise<JsonResponse>`
-
-Executes the summary action in JSON mode.
-
-**Parameters**
-
-- `request` – an `@itrocks/action-request` `Request<T>` instance, typically
-  created by your HTTP adapter from the incoming HTTP request. The `type`
-  carried by the request identifies which entity class to summarize (for
-  example `User`, `Project`, …).
-
-**Return value**
-
-- a `Promise` that resolves to a `JsonResponse` (from `@itrocks/core-responses`)
-  whose payload is `SummaryRecord[]`.
-
-**Side effects / requirements**
-
-- requires access to a configured `Store` via `@itrocks/storage`'s
-  `dataSource()`;
-- performs read‑only access; it does not modify stored entities.
+- Retrieves entities via `dataSource().search(...)`
+- Aplies sorting through the storage layer
+- Applies optional paging (`limit`, `offset`, `page`)
+- Computes each label via `representativeValueOf(object)`
 
 ## Typical use cases
 
-- **Populating select boxes and drop‑downs** – fetch a list of
-  `[id, label]` pairs to feed HTML `<select>`, autocomplete widgets, or other
-  UI components that need a compact representation of many objects.
-- **Navigation lists and sidebars** – build side menus, breadcrumbs, or
-  small navigation lists that display concise labels instead of full entity
-  details.
-- **Lookup dialogs** – use the summary endpoint to display short lines in a
-  search dialog while keeping server responses small.
-- **Read‑only references in other views** – when rendering complex objects
-  that reference other entities, call the summary endpoint to display
-  readable labels (for example, show the project owner name instead of the
-  raw `ownerId`).
+- Select boxes / drop‑downs
+- Autocomplete with progressive narrowing
+- Lightweight navigation lists

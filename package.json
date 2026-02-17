@@ -6,8 +6,10 @@
 	"dependencies": {
 		"@itrocks/action": "latest",
 		"@itrocks/action-request": "latest",
+		"@itrocks/class-type": "latest",
 		"@itrocks/class-view": "latest",
 		"@itrocks/route": "latest",
+		"@itrocks/sql-functions": "latest",
 		"@itrocks/storage": "latest"
 	},
 	"description": "Generic action-based object summary in JSON",
@@ -56,5 +58,5 @@
 		"build": "tsc"
 	},
 	"types": "./cjs/summary.d.ts",
-	"version": "0.0.13"
+	"version": "0.1.0"
 }
