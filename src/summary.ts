@@ -42,7 +42,7 @@ export class Summary<T extends object = object> extends Action<T>
 
 	async json(request: Request<T>)
 	{
-		await new Promise(resolve => setTimeout(resolve, 500)) // SLOWED FOR TESTING
+		// await new Promise(resolve => setTimeout(resolve, 500)) // SLOWED FOR TESTING
 		return this.jsonResponse(await this.summary(request))
 	}
 
