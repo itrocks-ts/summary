@@ -14,10 +14,10 @@
 	},
 	"description": "Generic action-based object summary in JSON",
 	"devDependencies": {
-		"typescript": "~5.9"
+		"typescript": "^6.0"
 	},
 	"engines": {
-		"node": ">=18"
+		"node": ">=24"
 	},
 	"exports": "./cjs/summary.js",
 	"homepage": "https://it.rocks",
@@ -25,7 +25,7 @@
 		"config.yaml",
 		"LICENSE",
 		"README.md",
-		"cjs/*",
+		"cjs",
 		"!*.map"
 	],
 	"keywords": [
@@ -57,6 +57,5 @@
 	"scripts": {
 		"build": "tsc"
 	},
-	"types": "./cjs/summary.d.ts",
-	"version": "0.1.1"
+	"version": "0.1.2"
 }
