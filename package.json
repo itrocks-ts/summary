@@ -14,7 +14,7 @@
 	},
 	"description": "Generic action-based object summary in JSON",
 	"devDependencies": {
-		"typescript": "^6.0"
+		"typescript": "^7.0"
 	},
 	"engines": {
 		"node": ">=24"
@@ -57,5 +57,5 @@
 	"scripts": {
 		"build": "tsc"
 	},
-	"version": "0.1.2"
+	"version": "0.1.3"
 }
